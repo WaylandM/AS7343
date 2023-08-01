@@ -1,9 +1,9 @@
 /*!
- *  @file Adafruit_AS7341.cpp
+ *  @file AMS_OSRAM_AS7343.cpp
  *
- * 	I2C Driver for the Library for the AS7341 11-Channel Spectral Sensor
+ * 	I2C Driver for the Library for the AS7343 14-Channel Spectral Sensor
  *
- * 	This is a library for the Adafruit AS7341 breakout:
+ * 	This is a library for the Adafruit AS7343 breakout:
  * 	https://www.adafruit.com/product/4698
  *
  * 	Adafruit invests time and resources providing this open source code,
@@ -18,19 +18,19 @@
 #include "Arduino.h"
 #include <Wire.h>
 
-#include "Adafruit_AS7341.h"
+#include "AMS_OSRAM_AS7343.h"
 
 /**
- * @brief Construct a new Adafruit_AS7341::Adafruit_AS7341 object
+ * @brief Construct a new AMS_OSRAM_AS7343::AMS_OSRAM_AS7343 object
  *
  */
-Adafruit_AS7341::Adafruit_AS7341(void) {}
+AMS_OSRAM_AS7343::AMS_OSRAM_AS7343(void) {}
 
 /**
- * @brief Destroy the Adafruit_AS7341::Adafruit_AS7341 object
+ * @brief Destroy the AMS_OSRAM_AS7343::AMS_OSRAM_AS7343 object
  *
  */
-Adafruit_AS7341::~Adafruit_AS7341(void) {
+AMS_OSRAM_AS7343::~AMS_OSRAM_AS7343(void) {
   //   if (temp_sensor)
   //     delete temp_sensor;
   //   if (pressure_sensor)
@@ -47,7 +47,7 @@ Adafruit_AS7341::~Adafruit_AS7341(void) {
  *            The unique ID to differentiate the sensors from others
  *    @return True if initialization was successful, otherwise false.
  */
-bool Adafruit_AS7341::begin(uint8_t i2c_address, TwoWire *wire,
+bool AMS_OSRAM_AS7343::begin(uint8_t i2c_address, TwoWire *wire,
                             int32_t sensor_id) {
   if (i2c_dev) {
     delete i2c_dev; // remove old interface
@@ -66,18 +66,18 @@ bool Adafruit_AS7341::begin(uint8_t i2c_address, TwoWire *wire,
  *   @param sensor_id Optional unique ID for the sensor set
  *   @returns True if chip identified and initialized
  */
-bool Adafruit_AS7341::_init(int32_t sensor_id) {
+bool AMS_OSRAM_AS7343::_init(int32_t sensor_id) {
 
   // silence compiler warning - variable may be used in the future
   (void)sensor_id;
 
   Adafruit_BusIO_Register chip_id =
-      Adafruit_BusIO_Register(i2c_dev, AS7341_WHOAMI);
+      Adafruit_BusIO_Register(i2c_dev, AS7343_WHOAMI);
 
   // make sure we're talking to the right chip
-  if ((chip_id.read() & 0xFC) != (AS7341_CHIP_ID << 2)) {
-    return false;
-  }
+  //if ((chip_id.read() & 0xFC) != (AS7343_CHIP_ID << 2)) {
+    //return false;
+  //} (haven't been able to read chip ID from register)
 
   powerEnable(true);
   return true;
@@ -90,9 +90,9 @@ bool Adafruit_AS7341::_init(int32_t sensor_id) {
  *
  * @return int8_t
  */
-int8_t Adafruit_AS7341::getFlickerDetectStatus(void) {
+int8_t AMS_OSRAM_AS7343::getFlickerDetectStatus(void) {
   Adafruit_BusIO_Register flicker_val =
-      Adafruit_BusIO_Register(i2c_dev, AS7341_FD_STATUS);
+      Adafruit_BusIO_Register(i2c_dev, AS7343_FD_STATUS);
   return (int8_t)flicker_val.read();
 }
 
@@ -102,10 +102,10 @@ int8_t Adafruit_AS7341::getFlickerDetectStatus(void) {
  * @param channel The ADC channel to read
  * @return uint16_t The measured data for the currently configured sensor
  */
-uint16_t Adafruit_AS7341::readChannel(as7341_adc_channel_t channel) {
+uint16_t AMS_OSRAM_AS7343::readChannel(AS7343_adc_channel_t channel) {
   // each channel has two bytes, so offset by two for each next channel
   Adafruit_BusIO_Register channel_data_reg = Adafruit_BusIO_Register(
-      i2c_dev, (AS7341_CH0_DATA_L + 2 * channel), 2, LSBFIRST);
+      i2c_dev, (AS7343_CH0_DATA_L + 2 * channel), 2, LSBFIRST);
 
   return channel_data_reg.read();
 }
@@ -118,7 +118,7 @@ uint16_t Adafruit_AS7341::readChannel(as7341_adc_channel_t channel) {
  * @param channel The color sensor channel to read
  * @return uint16_t The measured data for the selected sensor channel
  */
-uint16_t Adafruit_AS7341::getChannel(as7341_color_channel_t channel) {
+uint16_t AMS_OSRAM_AS7343::getChannel(AS7343_color_channel_t channel) {
   return _channel_readings[channel];
 }
 
@@ -130,14 +130,14 @@ uint16_t Adafruit_AS7341::getChannel(as7341_color_channel_t channel) {
  * sensor data
  * @return true: success false: failure
  */
-bool Adafruit_AS7341::readAllChannels(uint16_t *readings_buffer) {
+bool AMS_OSRAM_AS7343::readAllChannels(uint16_t *readings_buffer) {
 
   setSMUXLowChannels(true);        // Configure SMUX to read low channels
   enableSpectralMeasurement(true); // Start integration
   delayForData(0);                 // I'll wait for you for all time
 
   Adafruit_BusIO_Register channel_data_reg =
-      Adafruit_BusIO_Register(i2c_dev, AS7341_CH0_DATA_L, 2);
+      Adafruit_BusIO_Register(i2c_dev, AS7343_CH0_DATA_L, 2);
 
   bool low_success = channel_data_reg.read((uint8_t *)readings_buffer, 12);
 
@@ -155,8 +155,8 @@ bool Adafruit_AS7341::readAllChannels(uint16_t *readings_buffer) {
  *
  * @return true: success false: failure (a bit arbitrary)
  */
-bool Adafruit_AS7341::startReading(void) {
-  _readingState = AS7341_WAITING_START; // Start the measurement please
+bool AMS_OSRAM_AS7343::startReading(void) {
+  _readingState = AS7343_WAITING_START; // Start the measurement please
   checkReadingProgress();               // Call the check function to start it
   return true;
 }
@@ -169,22 +169,22 @@ bool Adafruit_AS7341::startReading(void) {
  *
  * @return true: reading is complete false: reading is incomplete (or failed)
  */
-bool Adafruit_AS7341::checkReadingProgress() {
-  if (_readingState == AS7341_WAITING_START) {
+bool AMS_OSRAM_AS7343::checkReadingProgress() {
+  if (_readingState == AS7343_WAITING_START) {
     setSMUXLowChannels(true);        // Configure SMUX to read low channels
     enableSpectralMeasurement(true); // Start integration
-    _readingState = AS7341_WAITING_LOW;
+    _readingState = AS7343_WAITING_LOW;
     return false;
   }
 
-  if (!getIsDataReady() || _readingState == AS7341_WAITING_DONE)
+  if (!getIsDataReady() || _readingState == AS7343_WAITING_DONE)
     return false;
 
   if (_readingState ==
-      AS7341_WAITING_LOW) // Check of getIsDataRead() is already done
+      AS7343_WAITING_LOW) // Check of getIsDataRead() is already done
   {
     Adafruit_BusIO_Register channel_data_reg =
-        Adafruit_BusIO_Register(i2c_dev, AS7341_CH0_DATA_L, 2);
+        Adafruit_BusIO_Register(i2c_dev, AS7343_CH0_DATA_L, 2);
 
     // bool low_success = channel_data_reg.read((uint8_t *)_channel_readings,
     // 12);
@@ -192,16 +192,16 @@ bool Adafruit_AS7341::checkReadingProgress() {
 
     setSMUXLowChannels(false);       // Configure SMUX to read high channels
     enableSpectralMeasurement(true); // Start integration
-    _readingState = AS7341_WAITING_HIGH;
+    _readingState = AS7343_WAITING_HIGH;
     return false;
   }
 
   if (_readingState ==
-      AS7341_WAITING_HIGH) // Check of getIsDataRead() is already done
+      AS7343_WAITING_HIGH) // Check of getIsDataRead() is already done
   {
-    _readingState = AS7341_WAITING_DONE;
+    _readingState = AS7343_WAITING_DONE;
     Adafruit_BusIO_Register channel_data_reg =
-        Adafruit_BusIO_Register(i2c_dev, AS7341_CH0_DATA_L, 2);
+        Adafruit_BusIO_Register(i2c_dev, AS7343_CH0_DATA_L, 2);
     // return low_success &&			//low_success is lost since it
     // was last call
     channel_data_reg.read((uint8_t *)&_channel_readings[6], 12);
@@ -220,7 +220,7 @@ bool Adafruit_AS7341::checkReadingProgress() {
  *
  * @return true: success false: failure
  */
-bool Adafruit_AS7341::getAllChannels(uint16_t *readings_buffer) {
+bool AMS_OSRAM_AS7343::getAllChannels(uint16_t *readings_buffer) {
   for (int i = 0; i < 12; i++)
     readings_buffer[i] = _channel_readings[i];
   return true;
@@ -232,7 +232,7 @@ bool Adafruit_AS7341::getAllChannels(uint16_t *readings_buffer) {
  * @param waitTime the maximum amount of time to wait
  * @return none
  */
-void Adafruit_AS7341::delayForData(int waitTime) {
+void AMS_OSRAM_AS7343::delayForData(int waitTime) {
   if (waitTime == 0) // Wait forever
   {
     while (!getIsDataReady()) {
@@ -260,13 +260,13 @@ void Adafruit_AS7341::delayForData(int waitTime) {
  *
  * @return true: success false: failure
  */
-bool Adafruit_AS7341::readAllChannels(void) {
+bool AMS_OSRAM_AS7343::readAllChannels(void) {
   return readAllChannels(_channel_readings);
 }
 
-void Adafruit_AS7341::setSMUXLowChannels(bool f1_f4) {
+void AMS_OSRAM_AS7343::setSMUXLowChannels(bool f1_f4) {
   enableSpectralMeasurement(false);
-  setSMUXCommand(AS7341_SMUX_CMD_WRITE);
+  setSMUXCommand(AS7343_SMUX_CMD_WRITE);
   if (f1_f4) {
     setup_F1F4_Clear_NIR();
   } else {
@@ -280,9 +280,9 @@ void Adafruit_AS7341::setSMUXLowChannels(bool f1_f4) {
  *
  * @param enable_power true: on false: off
  */
-void Adafruit_AS7341::powerEnable(bool enable_power) {
+void AMS_OSRAM_AS7343::powerEnable(bool enable_power) {
   Adafruit_BusIO_Register enable_reg =
-      Adafruit_BusIO_Register(i2c_dev, AS7341_ENABLE);
+      Adafruit_BusIO_Register(i2c_dev, AS7343_ENABLE);
   Adafruit_BusIO_RegisterBits pon_en =
       Adafruit_BusIO_RegisterBits(&enable_reg, 1, 0);
   pon_en.write(enable_power);
@@ -292,9 +292,9 @@ void Adafruit_AS7341::powerEnable(bool enable_power) {
  * @brief Disable Spectral reading, flicker detection, and power
  *
  * */
-void Adafruit_AS7341::disableAll(void) {
+void AMS_OSRAM_AS7343::disableAll(void) {
   Adafruit_BusIO_Register enable_reg =
-      Adafruit_BusIO_Register(i2c_dev, AS7341_ENABLE);
+      Adafruit_BusIO_Register(i2c_dev, AS7343_ENABLE);
 
   enable_reg.write(0);
 }
@@ -305,20 +305,20 @@ void Adafruit_AS7341::disableAll(void) {
  * @param enable_measurement true: enabled false: disabled
  * @return true: success false: failure
  */
-bool Adafruit_AS7341::enableSpectralMeasurement(bool enable_measurement) {
+bool AMS_OSRAM_AS7343::enableSpectralMeasurement(bool enable_measurement) {
 
   Adafruit_BusIO_Register enable_reg =
-      Adafruit_BusIO_Register(i2c_dev, AS7341_ENABLE);
+      Adafruit_BusIO_Register(i2c_dev, AS7343_ENABLE);
 
   Adafruit_BusIO_RegisterBits spec_enable_bit =
       Adafruit_BusIO_RegisterBits(&enable_reg, 1, 1);
   return spec_enable_bit.write(enable_measurement);
 }
 
-bool Adafruit_AS7341::enableSMUX(void) {
+bool AMS_OSRAM_AS7343::enableSMUX(void) {
 
   Adafruit_BusIO_Register enable_reg =
-      Adafruit_BusIO_Register(i2c_dev, AS7341_ENABLE);
+      Adafruit_BusIO_Register(i2c_dev, AS7343_ENABLE);
   Adafruit_BusIO_RegisterBits smux_enable_bit =
       Adafruit_BusIO_RegisterBits(&enable_reg, 1, 4);
   bool success = smux_enable_bit.write(true);
@@ -336,10 +336,10 @@ bool Adafruit_AS7341::enableSMUX(void) {
     return success;
 }
 
-bool Adafruit_AS7341::enableFlickerDetection(bool enable_fd) {
+bool AMS_OSRAM_AS7343::enableFlickerDetection(bool enable_fd) {
 
   Adafruit_BusIO_Register enable_reg =
-      Adafruit_BusIO_Register(i2c_dev, AS7341_ENABLE);
+      Adafruit_BusIO_Register(i2c_dev, AS7343_ENABLE);
   Adafruit_BusIO_RegisterBits fd_enable_bit =
       Adafruit_BusIO_RegisterBits(&enable_reg, 1, 6);
   return fd_enable_bit.write(enable_fd);
@@ -348,15 +348,15 @@ bool Adafruit_AS7341::enableFlickerDetection(bool enable_fd) {
 /**
  * @brief Get the GPIO pin direction setting
  *
- * @return `AS7341_OUTPUT` or `AS7341_INPUT`
+ * @return `AS7343_OUTPUT` or `AS7343_INPUT`
  */
-as7341_gpio_dir_t Adafruit_AS7341::getGPIODirection(void) {
+AS7343_gpio_dir_t AMS_OSRAM_AS7343::getGPIODirection(void) {
   Adafruit_BusIO_Register gpio2_reg =
-      Adafruit_BusIO_Register(i2c_dev, AS7341_GPIO2);
+      Adafruit_BusIO_Register(i2c_dev, AS7343_GPIO2);
   Adafruit_BusIO_RegisterBits gpio_input_enable =
       Adafruit_BusIO_RegisterBits(&gpio2_reg, 1, 2);
 
-  return (as7341_gpio_dir_t)gpio_input_enable.read();
+  return (AS7343_gpio_dir_t)gpio_input_enable.read();
 }
 
 /**
@@ -365,9 +365,9 @@ as7341_gpio_dir_t Adafruit_AS7341::getGPIODirection(void) {
  * @param gpio_direction The IO direction to set
  * @return true: success false: failure
  */
-bool Adafruit_AS7341::setGPIODirection(as7341_gpio_dir_t gpio_direction) {
+bool AMS_OSRAM_AS7343::setGPIODirection(AS7343_gpio_dir_t gpio_direction) {
   Adafruit_BusIO_Register gpio2_reg =
-      Adafruit_BusIO_Register(i2c_dev, AS7341_GPIO2);
+      Adafruit_BusIO_Register(i2c_dev, AS7343_GPIO2);
   Adafruit_BusIO_RegisterBits gpio_input_enable =
       Adafruit_BusIO_RegisterBits(&gpio2_reg, 1, 2);
 
@@ -379,9 +379,9 @@ bool Adafruit_AS7341::setGPIODirection(as7341_gpio_dir_t gpio_direction) {
  *
  * @return true: GPIO output inverted false: GPIO output normal
  */
-bool Adafruit_AS7341::getGPIOInverted(void) {
+bool AMS_OSRAM_AS7343::getGPIOInverted(void) {
   Adafruit_BusIO_Register gpio2_reg =
-      Adafruit_BusIO_Register(i2c_dev, AS7341_GPIO2);
+      Adafruit_BusIO_Register(i2c_dev, AS7343_GPIO2);
   Adafruit_BusIO_RegisterBits gpio_output_inverted_bit =
       Adafruit_BusIO_RegisterBits(&gpio2_reg, 1, 3);
 
@@ -396,9 +396,9 @@ bool Adafruit_AS7341::getGPIOInverted(void) {
  * value to **true will disconnect** the GPIO pin from ground
  * @return true: success false: failure
  */
-bool Adafruit_AS7341::setGPIOInverted(bool gpio_inverted) {
+bool AMS_OSRAM_AS7343::setGPIOInverted(bool gpio_inverted) {
   Adafruit_BusIO_Register gpio2_reg =
-      Adafruit_BusIO_Register(i2c_dev, AS7341_GPIO2);
+      Adafruit_BusIO_Register(i2c_dev, AS7343_GPIO2);
   Adafruit_BusIO_RegisterBits gpio_output_inverted_bit =
       Adafruit_BusIO_RegisterBits(&gpio2_reg, 1, 3);
 
@@ -410,9 +410,9 @@ bool Adafruit_AS7341::setGPIOInverted(bool gpio_inverted) {
  *
  * @return true: GPIO pin level is high false: GPIO pin level is low
  */
-bool Adafruit_AS7341::getGPIOValue(void) {
+bool AMS_OSRAM_AS7343::getGPIOValue(void) {
   Adafruit_BusIO_Register gpio2_reg =
-      Adafruit_BusIO_Register(i2c_dev, AS7341_GPIO2);
+      Adafruit_BusIO_Register(i2c_dev, AS7343_GPIO2);
   Adafruit_BusIO_RegisterBits gpio_input_value_bit =
       Adafruit_BusIO_RegisterBits(&gpio2_reg, 1, 0);
 
@@ -427,18 +427,18 @@ bool Adafruit_AS7341::getGPIOValue(void) {
  * to connect the cathode of an LED to ground to turn it on.
  * @return true: success false: failure
  */
-bool Adafruit_AS7341::setGPIOValue(bool gpio_high) {
+bool AMS_OSRAM_AS7343::setGPIOValue(bool gpio_high) {
   Adafruit_BusIO_Register gpio2_reg =
-      Adafruit_BusIO_Register(i2c_dev, AS7341_GPIO2);
+      Adafruit_BusIO_Register(i2c_dev, AS7343_GPIO2);
   Adafruit_BusIO_RegisterBits gpio_output_value_bit =
       Adafruit_BusIO_RegisterBits(&gpio2_reg, 1, 1);
 
   return gpio_output_value_bit.write(gpio_high);
 }
 
-bool Adafruit_AS7341::setSMUXCommand(as7341_smux_cmd_t command) {
+bool AMS_OSRAM_AS7343::setSMUXCommand(AS7343_smux_cmd_t command) {
   Adafruit_BusIO_Register cfg6_reg =
-      Adafruit_BusIO_Register(i2c_dev, AS7341_CFG6);
+      Adafruit_BusIO_Register(i2c_dev, AS7343_CFG6);
   Adafruit_BusIO_RegisterBits smux_command_bits =
       Adafruit_BusIO_RegisterBits(&cfg6_reg, 2, 3);
 
@@ -451,16 +451,16 @@ bool Adafruit_AS7341::setSMUXCommand(as7341_smux_cmd_t command) {
  * @param enable_led true: LED enabled false: LED disabled
  * @return true: success false: failure
  */
-bool Adafruit_AS7341::enableLED(bool enable_led) {
+bool AMS_OSRAM_AS7343::enableLED(bool enable_led) {
   Adafruit_BusIO_Register config_reg =
-      Adafruit_BusIO_Register(i2c_dev, AS7341_CONFIG);
+      Adafruit_BusIO_Register(i2c_dev, AS7343_CONFIG);
   // Enables control of the LED via the LDR pin
   // 1=control enabled 0 = control disabled
   Adafruit_BusIO_RegisterBits led_sel_bit =
       Adafruit_BusIO_RegisterBits(&config_reg, 1, 3);
 
   Adafruit_BusIO_Register led_reg =
-      Adafruit_BusIO_Register(i2c_dev, AS7341_LED);
+      Adafruit_BusIO_Register(i2c_dev, AS7343_LED);
   // turns the LED on or off
   Adafruit_BusIO_RegisterBits led_act_bit =
       Adafruit_BusIO_RegisterBits(&led_reg, 1, 7);
@@ -480,7 +480,7 @@ bool Adafruit_AS7341::enableLED(bool enable_led) {
  * Range is 4mA to 258mA
  * @return true: success false: failure
  */
-bool Adafruit_AS7341::setLEDCurrent(uint16_t led_current_ma) {
+bool AMS_OSRAM_AS7343::setLEDCurrent(uint16_t led_current_ma) {
   // check within permissible range
   if (led_current_ma > 258) {
     return false;
@@ -491,7 +491,7 @@ bool Adafruit_AS7341::setLEDCurrent(uint16_t led_current_ma) {
   setBank(true); // Access 0x60 0x74
 
   Adafruit_BusIO_Register led_reg =
-      Adafruit_BusIO_Register(i2c_dev, AS7341_LED);
+      Adafruit_BusIO_Register(i2c_dev, AS7343_LED);
 
   // true = led on , false = off
   Adafruit_BusIO_RegisterBits led_current_bits =
@@ -508,14 +508,14 @@ bool Adafruit_AS7341::setLEDCurrent(uint16_t led_current_ma) {
  * Range is 4mA to 258mA
  * @return current limit in mA
  */
-uint16_t Adafruit_AS7341::getLEDCurrent(void) {
+uint16_t AMS_OSRAM_AS7343::getLEDCurrent(void) {
   uint16_t led_current_ma;
   uint32_t led_raw;
 
   setBank(true); // Access 0x60 0x74
 
   Adafruit_BusIO_Register led_reg =
-      Adafruit_BusIO_Register(i2c_dev, AS7341_LED);
+      Adafruit_BusIO_Register(i2c_dev, AS7343_LED);
 
   Adafruit_BusIO_RegisterBits led_current_bits =
       Adafruit_BusIO_RegisterBits(&led_reg, 7, 0);
@@ -530,7 +530,7 @@ uint16_t Adafruit_AS7341::getLEDCurrent(void) {
 /**
  * @brief Sets the active register bank
  *
- * The AS7341 uses banks to organize the register making it nescessary to set
+ * The AS7343 uses banks to organize the register making it nescessary to set
  * the correct bank to access a register.
  *
 
@@ -539,9 +539,9 @@ uint16_t Adafruit_AS7341::getLEDCurrent(void) {
  of `0x80` and above
  * @return true: success false: failure
  */
-bool Adafruit_AS7341::setBank(bool low) {
+bool AMS_OSRAM_AS7343::setBank(bool low) {
   Adafruit_BusIO_Register cfg0_reg =
-      Adafruit_BusIO_Register(i2c_dev, AS7341_CFG0);
+      Adafruit_BusIO_Register(i2c_dev, AS7343_CFG0);
   // register map says shift 3, 0xA9 description says shift 4 with 3 being
   // reserved
   Adafruit_BusIO_RegisterBits bank_bit =
@@ -557,9 +557,9 @@ bool Adafruit_AS7341::setBank(bool low) {
  * @param low_threshold the new threshold
  * @return true: success false: failure
  */
-bool Adafruit_AS7341::setLowThreshold(uint16_t low_threshold) {
+bool AMS_OSRAM_AS7343::setLowThreshold(uint16_t low_threshold) {
   Adafruit_BusIO_Register sp_low_threshold_reg =
-      Adafruit_BusIO_Register(i2c_dev, AS7341_SP_LOW_TH_L, 2, LSBFIRST);
+      Adafruit_BusIO_Register(i2c_dev, AS7343_SP_LOW_TH_L, 2, LSBFIRST);
   return sp_low_threshold_reg.write(low_threshold);
 }
 
@@ -568,9 +568,9 @@ bool Adafruit_AS7341::setLowThreshold(uint16_t low_threshold) {
  *
  * @return int16_t The current low threshold
  */
-uint16_t Adafruit_AS7341::getLowThreshold(void) {
+uint16_t AMS_OSRAM_AS7343::getLowThreshold(void) {
   Adafruit_BusIO_Register sp_low_threshold_reg =
-      Adafruit_BusIO_Register(i2c_dev, AS7341_SP_LOW_TH_L, 2, LSBFIRST);
+      Adafruit_BusIO_Register(i2c_dev, AS7343_SP_LOW_TH_L, 2, LSBFIRST);
   return sp_low_threshold_reg.read();
 }
 
@@ -581,9 +581,9 @@ uint16_t Adafruit_AS7341::getLowThreshold(void) {
  * @param high_threshold
  * @return true: success false: failure
  */
-bool Adafruit_AS7341::setHighThreshold(uint16_t high_threshold) {
+bool AMS_OSRAM_AS7343::setHighThreshold(uint16_t high_threshold) {
   Adafruit_BusIO_Register sp_high_threshold_reg =
-      Adafruit_BusIO_Register(i2c_dev, AS7341_SP_HIGH_TH_L, 2, LSBFIRST);
+      Adafruit_BusIO_Register(i2c_dev, AS7343_SP_HIGH_TH_L, 2, LSBFIRST);
   return sp_high_threshold_reg.write(high_threshold);
 }
 
@@ -592,9 +592,9 @@ bool Adafruit_AS7341::setHighThreshold(uint16_t high_threshold) {
  *
  * @return int16_t The current high threshold
  */
-uint16_t Adafruit_AS7341::getHighThreshold(void) {
+uint16_t AMS_OSRAM_AS7343::getHighThreshold(void) {
   Adafruit_BusIO_Register sp_high_threshold_reg =
-      Adafruit_BusIO_Register(i2c_dev, AS7341_SP_HIGH_TH_L, 2, LSBFIRST);
+      Adafruit_BusIO_Register(i2c_dev, AS7343_SP_HIGH_TH_L, 2, LSBFIRST);
   return sp_high_threshold_reg.read();
 }
 
@@ -604,9 +604,9 @@ uint16_t Adafruit_AS7341::getHighThreshold(void) {
  * @param enable_int true: enable false: disable
  * @return true: success false: falure
  */
-bool Adafruit_AS7341::enableSpectralInterrupt(bool enable_int) {
+bool AMS_OSRAM_AS7343::enableSpectralInterrupt(bool enable_int) {
   Adafruit_BusIO_Register int_enable_reg =
-      Adafruit_BusIO_Register(i2c_dev, AS7341_INTENAB);
+      Adafruit_BusIO_Register(i2c_dev, AS7343_INTENAB);
   Adafruit_BusIO_RegisterBits sp_int_bit =
       Adafruit_BusIO_RegisterBits(&int_enable_reg, 1, 3);
   return sp_int_bit.write(enable_int);
@@ -618,9 +618,9 @@ bool Adafruit_AS7341::enableSpectralInterrupt(bool enable_int) {
  * @param enable_int Set to true to enable system interrupts
  * @return true: success false: failure
  */
-bool Adafruit_AS7341::enableSystemInterrupt(bool enable_int) {
+bool AMS_OSRAM_AS7343::enableSystemInterrupt(bool enable_int) {
   Adafruit_BusIO_Register int_enable_reg =
-      Adafruit_BusIO_Register(i2c_dev, AS7341_INTENAB);
+      Adafruit_BusIO_Register(i2c_dev, AS7343_INTENAB);
   Adafruit_BusIO_RegisterBits sien_int_bit =
       Adafruit_BusIO_RegisterBits(&int_enable_reg, 1, 0);
   return sien_int_bit.write(enable_int);
@@ -642,9 +642,9 @@ bool Adafruit_AS7341::enableSystemInterrupt(bool enable_int) {
  * @param cycle_count The number of cycles to trigger an interrupt
  * @return true: success false: failure
  */
-bool Adafruit_AS7341::setAPERS(as7341_int_cycle_count_t cycle_count) {
+bool AMS_OSRAM_AS7343::setAPERS(AS7343_int_cycle_count_t cycle_count) {
   Adafruit_BusIO_Register pers_reg =
-      Adafruit_BusIO_Register(i2c_dev, AS7341_PERS);
+      Adafruit_BusIO_Register(i2c_dev, AS7343_PERS);
   Adafruit_BusIO_RegisterBits apers_bits =
       Adafruit_BusIO_RegisterBits(&pers_reg, 4, 0);
   return apers_bits.write(cycle_count);
@@ -655,16 +655,16 @@ bool Adafruit_AS7341::setAPERS(as7341_int_cycle_count_t cycle_count) {
  * interrupts, automatic gain control, and persistance settings
  *
  * @param channel The channel to use for spectral thresholds. Must be a
- * as7341_adc_channel_t **except for** `AS7341_ADC_CHANNEL_5`
+ * AS7343_adc_channel_t **except for** `AS7343_ADC_CHANNEL_5`
  * @return true: success false: failure
  */
-bool Adafruit_AS7341::setSpectralThresholdChannel(
-    as7341_adc_channel_t channel) {
-  if (channel == AS7341_ADC_CHANNEL_5) {
+bool AMS_OSRAM_AS7343::setSpectralThresholdChannel(
+    AS7343_adc_channel_t channel) {
+  if (channel == AS7343_ADC_CHANNEL_5) {
     return false;
   }
   Adafruit_BusIO_Register cfg_12_reg =
-      Adafruit_BusIO_Register(i2c_dev, AS7341_CFG12);
+      Adafruit_BusIO_Register(i2c_dev, AS7343_CFG12);
   Adafruit_BusIO_RegisterBits spectral_threshold_ch_bits =
       Adafruit_BusIO_RegisterBits(&cfg_12_reg, 3, 0);
   return spectral_threshold_ch_bits.write(channel);
@@ -675,9 +675,9 @@ bool Adafruit_AS7341::setSpectralThresholdChannel(
  *
  * @return uint8_t
  */
-uint8_t Adafruit_AS7341::getInterruptStatus(void) {
+uint8_t AMS_OSRAM_AS7343::getInterruptStatus(void) {
   Adafruit_BusIO_Register int_status_reg =
-      Adafruit_BusIO_Register(i2c_dev, AS7341_STATUS);
+      Adafruit_BusIO_Register(i2c_dev, AS7343_STATUS);
   return (uint8_t)int_status_reg.read();
 }
 
@@ -686,9 +686,9 @@ uint8_t Adafruit_AS7341::getInterruptStatus(void) {
  *
  * @return true: interrupt triggered false: interrupt not triggered
  */
-bool Adafruit_AS7341::spectralInterruptTriggered(void) {
+bool AMS_OSRAM_AS7343::spectralInterruptTriggered(void) {
   Adafruit_BusIO_Register int_status_reg =
-      Adafruit_BusIO_Register(i2c_dev, AS7341_STATUS);
+      Adafruit_BusIO_Register(i2c_dev, AS7343_STATUS);
   Adafruit_BusIO_RegisterBits aint_bit =
       Adafruit_BusIO_RegisterBits(&int_status_reg, 1, 3);
 
@@ -700,9 +700,9 @@ bool Adafruit_AS7341::spectralInterruptTriggered(void) {
  *
  * @return true: success false: failure
  */
-bool Adafruit_AS7341::clearInterruptStatus(void) {
+bool AMS_OSRAM_AS7343::clearInterruptStatus(void) {
   Adafruit_BusIO_Register int_status_reg =
-      Adafruit_BusIO_Register(i2c_dev, AS7341_STATUS);
+      Adafruit_BusIO_Register(i2c_dev, AS7343_STATUS);
 
   return int_status_reg.write(0xFF);
 }
@@ -713,9 +713,9 @@ bool Adafruit_AS7341::clearInterruptStatus(void) {
  *
  * @return uint8_t The current status register
  */
-uint8_t Adafruit_AS7341::spectralInterruptSource(void) {
+uint8_t AMS_OSRAM_AS7343::spectralInterruptSource(void) {
   Adafruit_BusIO_Register status3_reg =
-      Adafruit_BusIO_Register(i2c_dev, AS7341_STATUS3);
+      Adafruit_BusIO_Register(i2c_dev, AS7343_STATUS3);
 
   uint8_t spectral_int_source = status3_reg.read();
   last_spectral_int_source = spectral_int_source;
@@ -727,8 +727,8 @@ uint8_t Adafruit_AS7341::spectralInterruptSource(void) {
  *
  * @return true: low interrupt triggered false: interrupt not triggered
  */
-bool Adafruit_AS7341::spectralLowTriggered(void) {
-  return (last_spectral_int_source & AS7341_SPECTRAL_INT_LOW_MSK) > 0;
+bool AMS_OSRAM_AS7343::spectralLowTriggered(void) {
+  return (last_spectral_int_source & AS7343_SPECTRAL_INT_LOW_MSK) > 0;
 }
 
 /**
@@ -736,8 +736,8 @@ bool Adafruit_AS7341::spectralLowTriggered(void) {
  *
  * @return true: high interrupt triggered false: interrupt not triggered
  */
-bool Adafruit_AS7341::spectralHighTriggered(void) {
-  return (last_spectral_int_source & AS7341_SPECTRAL_INT_HIGH_MSK) > 0;
+bool AMS_OSRAM_AS7343::spectralHighTriggered(void) {
+  return (last_spectral_int_source & AS7343_SPECTRAL_INT_HIGH_MSK) > 0;
 }
 
 /**
@@ -745,9 +745,9 @@ bool Adafruit_AS7341::spectralHighTriggered(void) {
  *
  * @return true: success false: failure
  */
-bool Adafruit_AS7341::getIsDataReady() {
+bool AMS_OSRAM_AS7343::getIsDataReady() {
   Adafruit_BusIO_Register status2_reg =
-      Adafruit_BusIO_Register(i2c_dev, AS7341_STATUS2);
+      Adafruit_BusIO_Register(i2c_dev, AS7343_STATUS2);
   Adafruit_BusIO_RegisterBits avalid_bit =
       Adafruit_BusIO_RegisterBits(&status2_reg, 1, 6);
 
@@ -758,7 +758,7 @@ bool Adafruit_AS7341::getIsDataReady() {
  * @brief Configure SMUX for sensors F1-4, Clear and NIR
  *
  */
-void Adafruit_AS7341::setup_F1F4_Clear_NIR() {
+void AMS_OSRAM_AS7343::setup_F1F4_Clear_NIR() {
   // SMUX Config for F1,F2,F3,F4,NIR,Clear
   writeRegister(byte(0x00), byte(0x30)); // F3 left set to ADC2
   writeRegister(byte(0x01), byte(0x01)); // F1 left set to ADC0
@@ -788,7 +788,7 @@ void Adafruit_AS7341::setup_F1F4_Clear_NIR() {
  * @brief Configure SMUX for sensors F5-8, Clear and NIR
  *
  */
-void Adafruit_AS7341::setup_F5F8_Clear_NIR() {
+void AMS_OSRAM_AS7343::setup_F5F8_Clear_NIR() {
   // SMUX Config for F5,F6,F7,F8,NIR,Clear
   writeRegister(byte(0x00), byte(0x00)); // F3 left disable
   writeRegister(byte(0x01), byte(0x00)); // F1 left disable
@@ -818,7 +818,7 @@ void Adafruit_AS7341::setup_F5F8_Clear_NIR() {
  * @brief Configure SMUX for flicker detection
  *
  */
-void Adafruit_AS7341::FDConfig() {
+void AMS_OSRAM_AS7343::FDConfig() {
   // SMUX Config for Flicker- register (0x13)left set to ADC6 for flicker
   // detection
   writeRegister(byte(0x00), byte(0x00)); // disabled
@@ -853,9 +853,9 @@ void Adafruit_AS7341::FDConfig() {
  * @param atime_value The integration time step count
  * @return true: success false: failure
  */
-bool Adafruit_AS7341::setATIME(uint8_t atime_value) {
+bool AMS_OSRAM_AS7343::setATIME(uint8_t atime_value) {
   Adafruit_BusIO_Register atime_reg =
-      Adafruit_BusIO_Register(i2c_dev, AS7341_ATIME);
+      Adafruit_BusIO_Register(i2c_dev, AS7343_ATIME);
   return atime_reg.write(atime_value);
 }
 
@@ -866,9 +866,9 @@ bool Adafruit_AS7341::setATIME(uint8_t atime_value) {
  *
  * @return uint8_t The current integration time step count
  */
-uint8_t Adafruit_AS7341::getATIME() {
+uint8_t AMS_OSRAM_AS7343::getATIME() {
   Adafruit_BusIO_Register atime_reg =
-      Adafruit_BusIO_Register(i2c_dev, AS7341_ATIME);
+      Adafruit_BusIO_Register(i2c_dev, AS7343_ATIME);
   return atime_reg.read();
 }
 
@@ -879,9 +879,9 @@ uint8_t Adafruit_AS7341::getATIME() {
  * Step size is `(astep_value+1) * 2.78 uS`
  * @return true: success false: failure
  */
-bool Adafruit_AS7341::setASTEP(uint16_t astep_value) {
+bool AMS_OSRAM_AS7343::setASTEP(uint16_t astep_value) {
   Adafruit_BusIO_Register astep_reg =
-      Adafruit_BusIO_Register(i2c_dev, AS7341_ASTEP_L, 2, LSBFIRST);
+      Adafruit_BusIO_Register(i2c_dev, AS7343_ASTEP_L, 2, LSBFIRST);
   return astep_reg.write(astep_value);
 }
 
@@ -892,21 +892,21 @@ bool Adafruit_AS7341::setASTEP(uint16_t astep_value) {
  *
  * @return uint16_t The current integration time step size
  */
-uint16_t Adafruit_AS7341::getASTEP() {
+uint16_t AMS_OSRAM_AS7343::getASTEP() {
   Adafruit_BusIO_Register astep_reg =
-      Adafruit_BusIO_Register(i2c_dev, AS7341_ASTEP_L, 2, LSBFIRST);
+      Adafruit_BusIO_Register(i2c_dev, AS7343_ASTEP_L, 2, LSBFIRST);
   return astep_reg.read();
 }
 
 /**
  * @brief Sets the ADC gain multiplier
  *
- * @param gain_value The gain amount. must be an `as7341_gain_t`
+ * @param gain_value The gain amount. must be an `AS7343_gain_t`
  * @return true: success false: failure
  */
-bool Adafruit_AS7341::setGain(as7341_gain_t gain_value) {
+bool AMS_OSRAM_AS7343::setGain(AS7343_gain_t gain_value) {
   Adafruit_BusIO_Register cfg1_reg =
-      Adafruit_BusIO_Register(i2c_dev, AS7341_CFG1);
+      Adafruit_BusIO_Register(i2c_dev, AS7343_CFG1);
   return cfg1_reg.write(gain_value);
   // AGAIN bitfield is only[0:4] but the rest is empty
 }
@@ -914,12 +914,12 @@ bool Adafruit_AS7341::setGain(as7341_gain_t gain_value) {
 /**
  * @brief Returns the ADC gain multiplier
  *
- * @return as7341_gain_t The current ADC gain multiplier
+ * @return AS7343_gain_t The current ADC gain multiplier
  */
-as7341_gain_t Adafruit_AS7341::getGain() {
+AS7343_gain_t AMS_OSRAM_AS7343::getGain() {
   Adafruit_BusIO_Register cfg1_reg =
-      Adafruit_BusIO_Register(i2c_dev, AS7341_CFG1);
-  return (as7341_gain_t)cfg1_reg.read();
+      Adafruit_BusIO_Register(i2c_dev, AS7343_CFG1);
+  return (AS7343_gain_t)cfg1_reg.read();
 }
 
 /**
@@ -929,7 +929,7 @@ as7341_gain_t Adafruit_AS7341::getGain() {
  *
  * @return long The current integration time in ms
  */
-long Adafruit_AS7341::getTINT() {
+long AMS_OSRAM_AS7343::getTINT() {
   uint16_t astep = getASTEP();
   uint8_t atime = getATIME();
 
@@ -945,41 +945,41 @@ long Adafruit_AS7341::getTINT() {
  *
  * @return float The basic counts
  */
-float Adafruit_AS7341::toBasicCounts(uint16_t raw) {
+float AMS_OSRAM_AS7343::toBasicCounts(uint16_t raw) {
   float gain_val = 0;
-  as7341_gain_t gain = getGain();
+  AS7343_gain_t gain = getGain();
   switch (gain) {
-  case AS7341_GAIN_0_5X:
+  case AS7343_GAIN_0_5X:
     gain_val = 0.5;
     break;
-  case AS7341_GAIN_1X:
+  case AS7343_GAIN_1X:
     gain_val = 1;
     break;
-  case AS7341_GAIN_2X:
+  case AS7343_GAIN_2X:
     gain_val = 2;
     break;
-  case AS7341_GAIN_4X:
+  case AS7343_GAIN_4X:
     gain_val = 4;
     break;
-  case AS7341_GAIN_8X:
+  case AS7343_GAIN_8X:
     gain_val = 8;
     break;
-  case AS7341_GAIN_16X:
+  case AS7343_GAIN_16X:
     gain_val = 16;
     break;
-  case AS7341_GAIN_32X:
+  case AS7343_GAIN_32X:
     gain_val = 32;
     break;
-  case AS7341_GAIN_64X:
+  case AS7343_GAIN_64X:
     gain_val = 64;
     break;
-  case AS7341_GAIN_128X:
+  case AS7343_GAIN_128X:
     gain_val = 128;
     break;
-  case AS7341_GAIN_256X:
+  case AS7343_GAIN_256X:
     gain_val = 256;
     break;
-  case AS7341_GAIN_512X:
+  case AS7343_GAIN_512X:
     gain_val = 512;
     break;
   }
@@ -991,7 +991,7 @@ float Adafruit_AS7341::toBasicCounts(uint16_t raw) {
  * @return The frequency of a detected flicker or 1 if a flicker of
  * unknown frequency is detected
  */
-uint16_t Adafruit_AS7341::detectFlickerHz(void) {
+uint16_t AMS_OSRAM_AS7343::detectFlickerHz(void) {
   // bool isEnabled = true;
   // bool isFdmeasReady = false;
 
@@ -1002,7 +1002,7 @@ uint16_t Adafruit_AS7341::detectFlickerHz(void) {
 
   // Write SMUX configuration from RAM to set SMUX chain registers (Write 0x10
   // to CFG6)
-  setSMUXCommand(AS7341_SMUX_CMD_WRITE);
+  setSMUXCommand(AS7343_SMUX_CMD_WRITE);
 
   // Write new configuration to all the 20 registers for detecting Flicker
   FDConfig();
@@ -1014,7 +1014,7 @@ uint16_t Adafruit_AS7341::detectFlickerHz(void) {
   enableSpectralMeasurement(true);
 
   // Enable flicker detection bit
-  writeRegister(byte(AS7341_ENABLE), byte(0x41));
+  writeRegister(byte(AS7343_ENABLE), byte(0x41));
   delay(500); // SF 2020-08-12 Does this really need to be so long?
   uint16_t flicker_status = getFlickerDetectStatus();
   enableFlickerDetection(false);
@@ -1036,7 +1036,7 @@ uint16_t Adafruit_AS7341::detectFlickerHz(void) {
  * @param addr Register address
  * @param val The value to set the register to
  */
-void Adafruit_AS7341::writeRegister(byte addr, byte val) {
+void AMS_OSRAM_AS7343::writeRegister(byte addr, byte val) {
   Adafruit_BusIO_Register reg = Adafruit_BusIO_Register(i2c_dev, addr);
   reg.write(val);
 }
