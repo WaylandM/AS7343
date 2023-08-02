@@ -58,7 +58,7 @@
 #include <Adafruit_I2CDevice.h>
 #include <Wire.h>
 #define AS7343_I2CADDR_DEFAULT 0x39 ///< AS7343 default i2c address
-#define AS7343_CHIP_ID 0x09         ///< AS7343 default device id from WHOAMI
+#define AS7343_CHIP_ID 0x81         ///< AS7343 default device id from datasheet
 
 #define AS7343_WHOAMI 0x5A ///< Chip ID register
 
@@ -72,7 +72,7 @@
 #define AS7343_STAT 0x71   ///< AS7343_STAT (unused)
 #define AS7343_EDGE 0x72   ///< AS7343_EDGE (unused)
 #define AS7343_GPIO 0x73   ///< Connects photo diode to GPIO or INT pins
-#define AS7343_LED 0x74    ///< LED Register; Enables and sets current limit
+#define AS7343_LED 0xCD    ///< LED Register; Enables and sets current limit
 #define AS7343_ENABLE                                                          \
   0x80 ///< Main enable register. Controls SMUX, Flicker Detection, Spectral
        ///< Measurements and Power
@@ -228,7 +228,7 @@ typedef enum {
   AS7343_CHANNEL_515_F4,
   AS7343_CHANNEL_640_F6,
   AS7343_CHANNEL_CLEAR_0,
-  AS7343_CHANNEL_FD_0
+  AS7343_CHANNEL_FD_0,
   AS7343_CHANNEL_405_F1,
   AS7343_CHANNEL_550_F5,
   AS7343_CHANNEL_690_F7,

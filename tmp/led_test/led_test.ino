@@ -1,9 +1,9 @@
 /* This example will set the onboard LED current to various values and blink
    the LED */
 
-#include <Adafruit_AS7341.h>
+#include "AMS_OSRAM_AS7343.h"
 
-Adafruit_AS7341 as7341;
+AMS_OSRAM_AS7343 as7343;
 
 
 void setup() {
@@ -14,24 +14,24 @@ void setup() {
     delay(1);
   }
 
-  if (!as7341.begin()){
-    Serial.println("Could not find AS7341");
+  if (!as7343.begin()){
+    Serial.println("Could not find as7343");
     while (1) { delay(10); }
   }
 }
 
 void loop() {
   Serial.println("4 mA LED blink");
-  as7341.setLEDCurrent(4); // 4mA
-  as7341.enableLED(true);
+  as7343.setLEDCurrent(4); // 4mA
+  as7343.enableLED(true);
   delay(100);
-  as7341.enableLED(false);
+  as7343.enableLED(false);
   delay(500);
 
   Serial.println("100 mA LED blink");
-  as7341.setLEDCurrent(100); // 100mA
-  as7341.enableLED(true);
+  as7343.setLEDCurrent(100); // 100mA
+  as7343.enableLED(true);
   delay(100);
-  as7341.enableLED(false);
+  as7343.enableLED(false);
   delay(500);
 }

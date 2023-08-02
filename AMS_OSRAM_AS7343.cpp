@@ -71,13 +71,15 @@ bool AMS_OSRAM_AS7343::_init(int32_t sensor_id) {
   // silence compiler warning - variable may be used in the future
   (void)sensor_id;
 
-  Adafruit_BusIO_Register chip_id =
-      Adafruit_BusIO_Register(i2c_dev, AS7343_WHOAMI);
-
   // make sure we're talking to the right chip
-  //if ((chip_id.read() & 0xFC) != (AS7343_CHIP_ID << 2)) {
-    //return false;
-  //} (haven't been able to read chip ID from register)
+  Adafruit_BusIO_Register chip_id_reg =
+      Adafruit_BusIO_Register(i2c_dev, AS7343_WHOAMI);
+  setBank(True); //Access registers 0x20 to 0x7F
+  uint8_t chip_id = chip_id_reg.read();
+  setBank(False); //Access to registers 0x80 and above (default)
+  if (chipID != AS7343_CHIP_ID) {
+    return false;
+  } 
 
   powerEnable(true);
   return true;
@@ -465,7 +467,7 @@ bool AMS_OSRAM_AS7343::enableLED(bool enable_led) {
   Adafruit_BusIO_RegisterBits led_act_bit =
       Adafruit_BusIO_RegisterBits(&led_reg, 1, 7);
 
-  setBank(true); // Access 0x60-0x74
+  setBank(true); // Access registers 0x20 to 0x7F
   bool result = led_sel_bit.write(enable_led) && led_act_bit.write(enable_led);
   setBank(false); // Access registers 0x80 and above (default)
   return result;
@@ -488,7 +490,7 @@ bool AMS_OSRAM_AS7343::setLEDCurrent(uint16_t led_current_ma) {
   if (led_current_ma < 4) {
     led_current_ma = 4;
   }
-  setBank(true); // Access 0x60 0x74
+  setBank(true); // //Access registers 0x20 to 0x7F
 
   Adafruit_BusIO_Register led_reg =
       Adafruit_BusIO_Register(i2c_dev, AS7343_LED);
@@ -512,7 +514,7 @@ uint16_t AMS_OSRAM_AS7343::getLEDCurrent(void) {
   uint16_t led_current_ma;
   uint32_t led_raw;
 
-  setBank(true); // Access 0x60 0x74
+  setBank(true); // Access registers 0x20 to 0x7F
 
   Adafruit_BusIO_Register led_reg =
       Adafruit_BusIO_Register(i2c_dev, AS7343_LED);
