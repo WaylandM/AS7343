@@ -375,7 +375,7 @@ private:
   bool setSMUXCommand(AS7343_smux_cmd_t command);
   void writeRegister(byte addr, byte val);
   void setSMUXLowChannels(bool f1_f4);
-  uint16_t _channel_readings[12];
+  uint16_t _channel_readings[18];
   AS7343_waiting_t _readingState;
 };
 
