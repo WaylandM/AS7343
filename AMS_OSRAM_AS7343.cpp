@@ -74,10 +74,10 @@ bool AMS_OSRAM_AS7343::_init(int32_t sensor_id) {
   // make sure we're talking to the right chip
   Adafruit_BusIO_Register chip_id_reg =
       Adafruit_BusIO_Register(i2c_dev, AS7343_WHOAMI);
-  setBank(True); //Access registers 0x20 to 0x7F
+  setBank(true); //Access registers 0x20 to 0x7F
   uint8_t chip_id = chip_id_reg.read();
-  setBank(False); //Access to registers 0x80 and above (default)
-  if (chipID != AS7343_CHIP_ID) {
+  setBank(false); //Access to registers 0x80 and above (default)
+  if (chip_id != AS7343_CHIP_ID) {
     return false;
   } 
 
