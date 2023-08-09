@@ -2,6 +2,7 @@
 
 #include "AMS_OSRAM_AS7343.h"
 
+
 AMS_OSRAM_AS7343 as7343;
 
 
@@ -21,7 +22,6 @@ void setup() {
   as7343.setATIME(100);
   as7343.setASTEP(999);
   as7343.setGain(AS7343_GAIN_256X);
-  as7343.enableLED(false);
 }
 
 void loop() {

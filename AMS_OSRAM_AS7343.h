@@ -145,6 +145,7 @@
 #define AS7343_CFG10 0x65 ///< AS7343_CFG10 (unused)
 #define AS7343_CFG12                                                           \
   0x66 ///< Spectral threshold channel for interrupts, persistence and auto-gain
+#define AS7343_CFG20 0xD6 //< FIFO and auto SMUX
 #define AS7343_PERS                                                            \
   0xCF ///< Number of measurement cycles outside thresholds to trigger an
        ///< interupt
@@ -172,6 +173,7 @@
   0b00100000 ///< bitmask to check for a high threshold interrupt
 #define AS7343_SPECTRAL_INT_LOW_MSK                                            \
   0b00010000 ///< bitmask to check for a low threshold interrupt
+
 
 /**
  * @brief Allowable gain multipliers for `setGain`

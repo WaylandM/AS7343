@@ -82,6 +82,15 @@ bool AMS_OSRAM_AS7343::_init(int32_t sensor_id) {
   } 
 
   powerEnable(true);
+
+  Adafruit_BusIO_Register cfg20_reg =
+      Adafruit_BusIO_Register(i2c_dev, AS7343_CFG20);
+  Adafruit_BusIO_RegisterBits auto_smux_bit =
+      Adafruit_BusIO_RegisterBits(&cfg20_reg, 2, 5);
+  if(!auto_smux_bit.write(3)) {
+    return false;
+  }
+
   return true;
 }
 
@@ -134,21 +143,14 @@ uint16_t AMS_OSRAM_AS7343::getChannel(AS7343_color_channel_t channel) {
  */
 bool AMS_OSRAM_AS7343::readAllChannels(uint16_t *readings_buffer) {
 
-  setSMUXLowChannels(true);        // Configure SMUX to read low channels
+  //enableSMUX();
   enableSpectralMeasurement(true); // Start integration
   delayForData(0);                 // I'll wait for you for all time
 
   Adafruit_BusIO_Register channel_data_reg =
       Adafruit_BusIO_Register(i2c_dev, AS7343_CH0_DATA_L, 2);
 
-  bool low_success = channel_data_reg.read((uint8_t *)readings_buffer, 12);
-
-  setSMUXLowChannels(false);       // Configure SMUX to read high channels
-  enableSpectralMeasurement(true); // Start integration
-  delayForData(0);                 // I'll wait for you for all time
-
-  return low_success &&
-         channel_data_reg.read((uint8_t *)&readings_buffer[6], 12);
+  return channel_data_reg.read((uint8_t *)readings_buffer, 36);
 }
 
 /**
