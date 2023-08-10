@@ -20,12 +20,18 @@ void setup() {
 
   as7343.setATIME(100);
   as7343.setASTEP(999);
-  as7343.setGain(AS7343_GAIN_256X);
+  //as7343.setGain(AS7343_GAIN_256X);
+  //as7343.setATIME(10);
+  //as7343.setASTEP(99);
+  as7343.setGain(AS7343_GAIN_128X);
   as7343.enableLED(false);
 }
 
 void loop() {
+
   // Read all channels at the same time and store in as7343 object
+  as7343.clearDigitalSaturationStatus();
+  as7343.clearAnalogSaturationStatus();
   if (!as7343.readAllChannels()){
     Serial.println("Error reading all channels!");
     return;
@@ -62,6 +68,10 @@ void loop() {
   Serial.println(as7343.getChannel(AS7343_CHANNEL_CLEAR_0));
   Serial.print("Clear 1 : ");
   Serial.println(as7343.getChannel(AS7343_CHANNEL_CLEAR_1));
+  Serial.print("Digital saturation : ");
+  Serial.println(as7343.digitalSaturation());
+  Serial.print("Analog saturation : ");
+  Serial.println(as7343.analogSaturation());
 
   Serial.println("");
 }

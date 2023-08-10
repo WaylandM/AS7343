@@ -191,6 +191,8 @@ typedef enum {
   AS7343_GAIN_128X,
   AS7343_GAIN_256X,
   AS7343_GAIN_512X,
+  AS7343_GAIN_1024x,
+  AS7343_GAIN_2048x,
 } AS7343_gain_t;
 
 /**
@@ -360,6 +362,11 @@ public:
   bool setGPIOInverted(bool gpio_inverted);
   bool getGPIOValue(void);
   bool setGPIOValue(bool);
+
+  bool digitalSaturation(void);
+  bool analogSaturation(void);
+  bool clearDigitalSaturationStatus(void);
+  bool clearAnalogSaturationStatus(void);
 
 protected:
   virtual bool _init(int32_t sensor_id);

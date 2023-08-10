@@ -144,6 +144,8 @@ uint16_t AMS_OSRAM_AS7343::getChannel(AS7343_color_channel_t channel) {
 bool AMS_OSRAM_AS7343::readAllChannels(uint16_t *readings_buffer) {
 
   //enableSMUX();
+  //clearAnalogSaturationStatus();
+  //clearDigitalSaturationStatus();
   enableSpectralMeasurement(true); // Start integration
   delayForData(0);                 // I'll wait for you for all time
 
@@ -1044,3 +1046,40 @@ void AMS_OSRAM_AS7343::writeRegister(byte addr, byte val) {
   Adafruit_BusIO_Register reg = Adafruit_BusIO_Register(i2c_dev, addr);
   reg.write(val);
 }
+
+bool AMS_OSRAM_AS7343::digitalSaturation(void) {
+  Adafruit_BusIO_Register status2_reg =
+      Adafruit_BusIO_Register(i2c_dev, AS7343_STATUS2);
+  Adafruit_BusIO_RegisterBits asat_digital_bit =
+      Adafruit_BusIO_RegisterBits(&status2_reg, 1, 4);
+
+  return asat_digital_bit.read();
+}
+
+bool AMS_OSRAM_AS7343::analogSaturation(void) {
+  Adafruit_BusIO_Register status2_reg =
+      Adafruit_BusIO_Register(i2c_dev, AS7343_STATUS2);
+  Adafruit_BusIO_RegisterBits asat_analog_bit =
+      Adafruit_BusIO_RegisterBits(&status2_reg, 1, 3);
+
+  return asat_analog_bit.read();
+}
+
+
+bool AMS_OSRAM_AS7343::clearDigitalSaturationStatus(void) {
+  Adafruit_BusIO_Register status2_reg =
+      Adafruit_BusIO_Register(i2c_dev, AS7343_STATUS2);
+  Adafruit_BusIO_RegisterBits asat_digital_bit =
+      Adafruit_BusIO_RegisterBits(&status2_reg, 1, 4);
+  return asat_digital_bit.write(0);
+}
+
+bool AMS_OSRAM_AS7343::clearAnalogSaturationStatus(void) {
+  Adafruit_BusIO_Register status2_reg =
+      Adafruit_BusIO_Register(i2c_dev, AS7343_STATUS2);
+  Adafruit_BusIO_RegisterBits asat_analog_bit =
+      Adafruit_BusIO_RegisterBits(&status2_reg, 1, 3);
+  return asat_analog_bit.write(0);
+}
+
+
