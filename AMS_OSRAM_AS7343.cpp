@@ -351,6 +351,43 @@ bool AMS_OSRAM_AS7343::enableFlickerDetection(bool enable_fd) {
   return fd_enable_bit.write(enable_fd);
 }
 
+bool AMS_OSRAM_AS7343::enableFlickerFIFO(bool enable) {
+  Adafruit_BusIO_Register enable_reg =
+      Adafruit_BusIO_Register(i2c_dev, AS7343_FD_CFG0);
+  Adafruit_BusIO_RegisterBits fd_enable_bit =
+      Adafruit_BusIO_RegisterBits(&enable_reg, 1, 7);
+  return fd_enable_bit.write(enable);
+}
+
+bool AMS_OSRAM_AS7343::setFIFOThreshold(AS7343_fifo_th_t value) {
+  Adafruit_BusIO_Register enable_reg =
+      Adafruit_BusIO_Register(i2c_dev, AS7343_CFG8);
+  Adafruit_BusIO_RegisterBits fd_enable_bit =
+      Adafruit_BusIO_RegisterBits(&enable_reg, 2, 6);
+  return fd_enable_bit.write(value);
+}
+
+bool AMS_OSRAM_AS7343::fifoInterrupt(void) {
+  Adafruit_BusIO_Register status2_reg =
+      Adafruit_BusIO_Register(i2c_dev, AS7343_STATUS);
+  Adafruit_BusIO_RegisterBits asat_digital_bit =
+      Adafruit_BusIO_RegisterBits(&status2_reg, 1, 2);
+
+  return asat_digital_bit.read();
+}
+
+uint8_t AMS_OSRAM_AS7343::readFIFOCount() {
+  Adafruit_BusIO_Register fifo_reg =
+      Adafruit_BusIO_Register(i2c_dev, AS7343_FIFO_LVL, 1, LSBFIRST);
+  return fifo_reg.read();
+}
+
+u_int16_t AMS_OSRAM_AS7343::readFIFO() {
+  Adafruit_BusIO_Register fifo_reg =
+      Adafruit_BusIO_Register(i2c_dev, AS7343_FDATA_L, 2, LSBFIRST);
+  return fifo_reg.read();
+}
+
 /**
  * @brief Get the GPIO pin direction setting
  *

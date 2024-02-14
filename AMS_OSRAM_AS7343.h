@@ -138,7 +138,7 @@
 #define AS7343_CFG1 0xC6 ///< Controls ADC Gain
 #define AS7343_CFG3 0xC7 ///< AS7343_CFG3 (unused)
 #define AS7343_CFG6 0xF5 ///< Used to configure Smux
-#define AS7343_CFG8 0xC9 ///< AS7343_CFG8 (unused)
+#define AS7343_CFG8 0xC9 ///< AS7343_CFG8
 #define AS7343_CFG9                                                            \
   0xCA ///< Enables flicker detection and smux command completion system
        ///< interrupts
@@ -158,7 +158,7 @@
 #define AS7343_AZ_CONFIG 0xDE    ///< AS7343_AZ_CONFIG (unused)
 #define AS7343_FD_TIME1 0xE0 ///< Flicker detection integration time low byte
 #define AS7343_FD_TIME2 0xE2 ///< Flicker detection gain and high nibble
-#define AS7343_FD_CFG0 0xDF  ///< AS7343_FD_CFG0 (unused)
+#define AS7343_FD_CFG0 0xDF  ///< AS7343_FD_CFG0
 #define AS7343_FD_STATUS                                                       \
   0xE3 ///< Flicker detection status; measurement valid, saturation, flicker
        ///< type
@@ -284,6 +284,14 @@ typedef enum {
   AS7343_WAITING_DONE,  //
 } AS7343_waiting_t;
 
+
+typedef enum {
+  AS7343_FIFO_TH_0, //
+  AS7343_FIFO_TH_1,   //
+  AS7343_FIFO_TH_2,  //
+  AS7343_FIFO_TH_3,  //
+} AS7343_fifo_th_t;
+
 class AMS_OSRAM_AS7343;
 
 /*!
@@ -368,6 +376,12 @@ public:
   bool clearDigitalSaturationStatus(void);
   bool clearAnalogSaturationStatus(void);
 
+  bool enableFlickerDetection(bool enable_fd);
+  bool enableFlickerFIFO(bool enable);
+  bool setFIFOThreshold(AS7343_fifo_th_t value);
+  bool fifoInterrupt(void);
+  uint8_t readFIFOCount();
+  u_int16_t readFIFO();
 protected:
   virtual bool _init(int32_t sensor_id);
   uint8_t last_spectral_int_source =
@@ -378,7 +392,6 @@ protected:
 
 private:
   bool enableSMUX(void);
-  bool enableFlickerDetection(bool enable_fd);
   void FDConfig(void);
   int8_t getFlickerDetectStatus(void);
   bool setSMUXCommand(AS7343_smux_cmd_t command);
