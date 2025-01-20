@@ -1,8 +1,10 @@
-/* This example will read all channels from the AS7341 and print out reported values */
+/* This example will read all channels from the AS7343 and print out reported values */
 
-#include <Adafruit_AS7341.h>
+// include the library file from this github (instead of the)
+#include "AMS_OSRAM_AS7343.h"
 
-Adafruit_AS7341 as7341;
+// Define the spectrometer Type
+AMS_OSRAM_AS7343 as7343;
 
 
 void setup() {
@@ -13,20 +15,20 @@ void setup() {
     delay(1);
   }
   
-  if (!as7341.begin()){
-    Serial.println("Could not find AS7341");
+  if (!as7343.begin()) {
+    Serial.println("Could not find AS7343");
     while (1) { delay(10); }
   }
-  
-  as7341.setATIME(100);
-  as7341.setASTEP(999);
-  as7341.setGain(AS7341_GAIN_256X);
+
+  as7343.setATIME(100);
+  as7343.setASTEP(999);1
+  as7343.setGain(AS7343_GAIN_256X);
 }
 
 void loop() {
-  uint16_t readings[12];
+    uint16_t readings[12];
 
-  if (!as7341.readAllChannels(readings)){
+  if (!as7343.readAllChannels(readings)) {
     Serial.println("Error reading all channels!");
     return;
   }
@@ -48,7 +50,7 @@ void loop() {
   Serial.print("ADC5/NIR-");
   Serial.println(readings[5]);
   */
-  
+ 
   Serial.println(readings[6]);
   Serial.print("ADC1/F6 590nm : ");
   Serial.println(readings[7]);
@@ -61,5 +63,5 @@ void loop() {
   Serial.print("ADC5/NIR      : ");
   Serial.println(readings[11]);
 
-  Serial.println();
+  Serial.println("-----------------------");
 }
